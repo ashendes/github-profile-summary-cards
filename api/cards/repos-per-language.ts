@@ -1,13 +1,12 @@
-import {getReposPerLanguageSVGWithThemeName} from '../../src/cards/repos-per-language-card';
-import {getGitHubToken} from '../utils/github-token-updater';
-import {getErrorMsgCard} from '../utils/error-card';
-import {sendAnalytics} from '../../src/utils/analytics';
-import {CONST_CACHE_CONTROL} from '../../src/const/cache';
-import {translateLanguage} from '../../src/utils/translator';
-import type {VercelRequest, VercelResponse} from '@vercel/node';
+import { getReposPerLanguageSVGWithThemeName } from '../../src/cards/repos-per-language-card';
+import { getGitHubToken } from '../utils/github-token-updater';
+import { getErrorMsgCard } from '../utils/error-card';
+import { CONST_CACHE_CONTROL } from '../../src/const/cache';
+import { translateLanguage } from '../../src/utils/translator';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default async (req: VercelRequest, res: VercelResponse) => {
-    const {username, theme = 'default', exclude = ''} = req.query;
+    const { username, theme = 'default', exclude = '' } = req.query;
 
     if (typeof theme !== 'string') {
         res.status(400).send('theme must be a string');
@@ -33,7 +32,6 @@ export default async (req: VercelRequest, res: VercelResponse) => {
         while (true) {
             try {
                 const cardSVG = await getReposPerLanguageSVGWithThemeName(username, theme, excludeArr, token);
-                await sendAnalytics('repos-per-language-card', {username, theme}, req.headers);
                 res.setHeader('Content-Type', 'image/svg+xml');
                 res.setHeader('Cache-Control', CONST_CACHE_CONTROL);
                 res.send(cardSVG);

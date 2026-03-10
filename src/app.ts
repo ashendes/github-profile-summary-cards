@@ -1,17 +1,16 @@
 import * as core from '@actions/core';
-import {sendAnalytics} from './utils/analytics';
-import {createProfileDetailsCard} from './cards/profile-details-card';
-import {createReposPerLanguageCard} from './cards/repos-per-language-card';
-import {createCommitsPerLanguageCard} from './cards/most-commit-language-card';
-import {createStatsCard} from './cards/stats-card';
-import {createProductiveTimeCard} from './cards/productive-time-card';
-import {spawn} from 'child_process';
-import {translateLanguage} from './utils/translator';
-import {OUTPUT_PATH, generatePreviewMarkdown} from './utils/file-writer';
+import { createProfileDetailsCard } from './cards/profile-details-card';
+import { createReposPerLanguageCard } from './cards/repos-per-language-card';
+import { createCommitsPerLanguageCard } from './cards/most-commit-language-card';
+import { createStatsCard } from './cards/stats-card';
+import { createProductiveTimeCard } from './cards/productive-time-card';
+import { spawn } from 'child_process';
+import { translateLanguage } from './utils/translator';
+import { OUTPUT_PATH, generatePreviewMarkdown } from './utils/file-writer';
 
 const execCmd = (cmd: string, args: string[] = []) =>
     new Promise((resolve, reject) => {
-        const app = spawn(cmd, args, {stdio: 'pipe'});
+        const app = spawn(cmd, args, { stdio: 'pipe' });
         let stdout = '';
         app.stdout.on('data', data => {
             stdout = data;
@@ -42,13 +41,13 @@ const action = async () => {
         core.setFailed('GITHUB_TOKEN is missing. Please check your workflow configuration.');
         return;
     }
-    const username = core.getInput('USERNAME', {required: true});
+    const username = core.getInput('USERNAME', { required: true });
     core.info(`Username: ${username}`);
-    const utcOffset = Number(core.getInput('UTC_OFFSET', {required: false}));
+    const utcOffset = Number(core.getInput('UTC_OFFSET', { required: false }));
     core.info(`UTC offset: ${utcOffset}`);
-    const exclude = core.getInput('EXCLUDE', {required: false}).split(',');
+    const exclude = core.getInput('EXCLUDE', { required: false }).split(',');
     core.info(`Excluded languages: ${exclude}`);
-    const autoPush = core.getBooleanInput('AUTO_PUSH', {required: false});
+    const autoPush = core.getBooleanInput('AUTO_PUSH', { required: false });
     core.info(`You ${autoPush ? 'have' : "haven't"} set automatically push commits`);
 
     try {
@@ -60,9 +59,8 @@ const action = async () => {
         try {
             core.info(`Creating ProfileDetailsCard...`);
             await createProfileDetailsCard(username, process.env.GITHUB_TOKEN!);
-            await sendAnalytics('action-profile-details-card', {username});
         } catch (error: any) {
-            core.error(`Error when creating ProfileDetailsCard \n${error.stack}`);
+            core.error(`Error when creating ProfileDetailsCard \n${error instanceof Error ? error.message : String(error)}`);
         }
 
         // ReposPerLanguageCard
@@ -70,7 +68,7 @@ const action = async () => {
             core.info(`Creating ReposPerLanguageCard...`);
             await createReposPerLanguageCard(username, exclude, process.env.GITHUB_TOKEN!);
         } catch (error: any) {
-            core.error(`Error when creating ReposPerLanguageCard \n${error.stack}`);
+            core.error(`Error when creating ReposPerLanguageCard \n${error instanceof Error ? error.message : String(error)}`);
         }
 
         // CommitsPerLanguageCard
@@ -78,7 +76,7 @@ const action = async () => {
             core.info(`Creating CommitsPerLanguageCard...`);
             await createCommitsPerLanguageCard(username, exclude, process.env.GITHUB_TOKEN!);
         } catch (error: any) {
-            core.error(`Error when creating CommitsPerLanguageCard \n${error.stack}`);
+            core.error(`Error when creating CommitsPerLanguageCard \n${error instanceof Error ? error.message : String(error)}`);
         }
 
         // StatsCard
@@ -86,14 +84,14 @@ const action = async () => {
             core.info(`Creating StatsCard...`);
             await createStatsCard(username, process.env.GITHUB_TOKEN!);
         } catch (error: any) {
-            core.error(`Error when creating StatsCard \n${error.stack}`);
+            core.error(`Error when creating StatsCard \n${error instanceof Error ? error.message : String(error)}`);
         }
         // ProductiveTimeCard
         try {
             core.info(`Creating ProductiveTimeCard...`);
             await createProductiveTimeCard(username, utcOffset, process.env.GITHUB_TOKEN!);
         } catch (error: any) {
-            core.error(`Error when creating ProductiveTimeCard \n${error.stack}`);
+            core.error(`Error when creating ProductiveTimeCard \n${error instanceof Error ? error.message : String(error)}`);
         }
 
         // generate markdown
@@ -101,7 +99,7 @@ const action = async () => {
             core.info(`Creating preview markdown...`);
             generatePreviewMarkdown(true);
         } catch (error: any) {
-            core.error(`Error when creating preview markdown \n${error.stack}`);
+            core.error(`Error when creating preview markdown \n${error instanceof Error ? error.message : String(error)}`);
         }
 
         // Commit changes
@@ -136,7 +134,7 @@ const main = async (username: string, utcOffset: number, exclude: Array<string>)
         await createProductiveTimeCard(username, utcOffset, process.env.GITHUB_TOKEN!);
         generatePreviewMarkdown(false);
     } catch (error: any) {
-        console.error(error);
+        console.error(error instanceof Error ? error.message : String(error));
     }
 };
 
